@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>A Special Birthday Surprise For You!</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #ffeef2 0%, #f5e6ff 50%, #e8f0fe 100%);
+      color: #334155;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      overflow-x: hidden;
+      padding: 16px;
+    }
+
+    /* Fixed Canvas for Confetti */
+    #confettiCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 50;
+    }
+
+    /* Top Action Bar */
+    .top-bar {
+      width: 100%;
+      max-width: 600px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .brand-title {
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: #e11d48;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-create {
+      background: linear-gradient(135deg, #f43f5e, #9333ea);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 9999px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(244, 63, 94, 0.3);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-create:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 16px rgba(244, 63, 94, 0.4);
+    }
+
+    /* Main Container Card */
+    .main-wrapper {
+      width: 100%;
+      max-width: 540px;
+      margin: auto;
+      z-index: 10;
+    }
+
+    /* Game Stage */
+    .game-box {
+      text-align: center;
+      padding: 24px 16px;
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.9);
+      color: #e11d48;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      margin-bottom: 16px;
+      border: 1px solid #fecdd3;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .main-heading {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #1e293b;
+      margin-bottom: 12px;
+      line-height: 1.25;
+    }
+
+    .sub-heading {
+      font-size: 0.95rem;
+      color: #64748b;
+      margin-bottom: 30px;
+      line-height: 1.5;
+    }
+
+    .target-heart-area {
+      position: relative;
+      width: 150px;
+      height: 150px;
+      margin: 0 auto 30px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .heart-emoji {
+      font-size: 6.5rem;
+      animation: heartPulse 1.8s ease-in-out infinite;
+      transition: transform 0.2s;
+    }
+
+    @keyframes heartPulse {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 8px 16px rgba(244, 63, 94, 0.3)); }
+      50% { transform: scale(1.12); filter: drop-shadow(0 16px 28px rgba(244, 63, 94, 0.5)); }
+    }
+
+    .arrow-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #e11d48, #be185d);
+      color: white;
+      font-size: 1.05rem;
+      font-weight: 700;
+      padding: 14px 28px;
+      border-radius: 9999px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(225, 29, 72, 0.35);
+      transition: transform 0.2s;
+    }
+
+    .arrow-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .arrow-btn:active {
+      transform: scale(0.96);
+    }
+
+    /* Card Reveal Stage */
+    .card-box {
+      display: none;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 28px;
+      padding: 32px 24px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      text-align: center;
+      animation: popIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes popIn {
+      0% { opacity: 0; transform: translateY(30px) scale(0.92); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Interactive Cake */
+    .cake-section {
+      margin-bottom: 20px;
+      cursor: pointer;
+      display: inline-block;
+    }
+
+    .flame {
+      font-size: 2rem;
+      margin-bottom: -6px;
+      animation: flicker 0.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes flicker {
+      0% { transform: scale(1) rotate(-2deg); }
+      100% { transform: scale(1.15) rotate(2deg); }
+    }
+
+    .candle-stick {
+      width: 10px;
+      height: 26px;
+      background: repeating-linear-gradient(45deg, #fbbf24, #fbbf24 4px, #f59e0b 4px, #f59e0b 8px);
+      margin: 0 auto;
+      border-radius: 2px 2px 0 0;
+    }
+
+    .cake-base {
+      background: linear-gradient(135deg, #fb7185, #f43f5e);
+      color: white;
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 8px 24px;
+      border-radius: 12px;
+      letter-spacing: 2px;
+      box-shadow: 0 4px 10px rgba(244, 63, 94, 0.3);
+    }
+
+    .wish-hint {
+      font-size: 0.75rem;
+      color: #e11d48;
+      background: #ffe4e6;
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      margin-top: 8px;
+      font-weight: 600;
+    }
+
+    .recipient-title {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #e11d48;
+      margin-bottom: 16px;
+    }
+
+    .letter-paper {
+      background: #fffdfa;
+      border: 1px solid #fecdd3;
+      border-radius: 18px;
+      padding: 22px;
+      text-align: left;
+      margin-bottom: 20px;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.02);
+    }
+
+    .typed-message {
+      font-size: 1.05rem;
+      line-height: 1.65;
+      color: #334155;
+      min-height: 80px;
+      white-space: pre-line;
+      font-family: Georgia, serif;
+    }
+
+    .sender-tag {
+      margin-top: 16px;
+      text-align: right;
+      font-weight: 700;
+      color: #e11d48;
+      font-size: 1.1rem;
+      font-family: Georgia, serif;
+    }
+
+    .btn-action-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .btn-sec {
+      background: #f1f5f9;
+      color: #334155;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-sec:hover {
+      background: #e2e8f0;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-card {
+      background: #ffffff;
+      width: 100%;
+      max-width: 460px;
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      position: relative;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: #f1f5f9;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .input-group {
+      margin-bottom: 14px;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #475569;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+
+    .input-group input, .input-group textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      outline: none;
+    }
+
+    .input-group input:focus, .input-group textarea:focus {
+      border-color: #f43f5e;
+      box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.2);
+    }
+
+    .link-output-box {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #e2e8f0;
+      display: none;
+    }
+
+    .copy-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .copy-row input {
+      flex: 1;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 0.85rem;
+    }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      background: #1e293b;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      z-index: 200;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="confettiCanvas"></canvas>
+
+  <div class="top-bar">
+    <div class="brand-title">
+      <span>🎈</span>
+      <span>BirthdaySurprise</span>
+    </div>
+    <button class="btn-create" id="openCreatorBtn">+ Create Yours</button>
+  </div>
+
+  <div class="main-wrapper">
+    <!-- STAGE 1: Hit the heart game -->
+    <div class="game-box" id="gamePhase">
+      <div class="badge">💌 YOU HAVE A SPECIAL SURPRISE!</div>
+      <h1 class="main-heading">Shoot The Heart!</h1>
+      <p class="sub-heading">A heartfelt surprise has been prepared for you. Tap the arrow or touch the heart to reveal it! ✨</p>
+      
+      <div class="target-heart-area" id="targetHeart">
+        <span class="heart-emoji">💖</span>
+      </div>
+
+      <button class="arrow-btn" id="shootBtn">
+        <span>Shoot Arrow</span>
+        <span>🏹🎯</span>
+      </button>
+    </div>
+
+    <!-- STAGE 2: Envelope & Wishes Card -->
+    <div class="card-box" id="cardPhase">
+      <div class="cake-section" id="cakeBtn" title="Click to blow out the candle!">
+        <div class="flame" id="flameIcon">🔥</div>
+        <div class="candle-stick"></div>
+        <div class="cake-base">MAKE A WISH</div>
+        <div class="wish-hint" id="wishHint">🕯️ Tap candle flame to blow it out</div>
+      </div>
+
+      <h2 class="recipient-title" id="cardRecipient">Happy Birthday, Sophia! 🎉</h2>
+
+      <div class="letter-paper">
+        <div class="typed-message" id="typewriterText"></div>
+        <div class="sender-tag" id="cardSender">With love, Alex ❤️️</div>
+      </div>
+
+      <div class="btn-action-group">
+        <button class="btn-sec" id="moreConfettiBtn">🎉 Pop More Confetti</button>
+        <button class="btn-sec" id="playSongBtn">🎶 Play Melody</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Creator Modal -->
+  <div class="modal-overlay" id="creatorModal">
+    <div class="modal-card">
+      <button class="modal-close" id="closeModalBtn">✕</button>
+      <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 6px;">Create a Personalized Link</h3>
+      <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 18px;">Type your message below to get a custom link to send.</p>
+
+      <form id="creatorForm">
+        <div class="input-group">
+          <label>Birthday Person's Name</label>
+          <input type="text" id="inputName" required placeholder="e.g. Emma" />
+        </div>
+        <div class="input-group">
+          <label>Your Message</label>
+          <textarea id="inputMessage" required rows="3" placeholder="Wishing you endless joy, laughter and happiness on your birthday!"></textarea>
+        </div>
+        <div class="input-group">
+          <label>Your Name / Signature</label>
+          <input type="text" id="inputSender" required placeholder="e.g. From Jack" />
+        </div>
+        <button type="submit" class="arrow-btn" style="width: 100%; justify-content: center;">Generate Secret Link ✨</button>
+      </form>
+
+      <div class="link-output-box" id="linkOutputBox">
+        <span style="font-size: 0.8rem; font-weight: bold; color: #059669;">✓ Link ready to share:</span>
+        <div class="copy-row">
+          <input type="text" id="generatedLink" readonly />
+          <button class="btn-create" id="copyLinkBtn" style="border-radius: 8px;">Copy</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast">Copied to clipboard!</div>
+
+  <script>
+    // Audio Synthesizer (Zero external file dependencies)
+    let audioCtx = null;
+    function getAudio() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      return audioCtx;
+    }
+
+    function soundPop() {
+      try {
+        const ctx = getAudio();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.frequency.setValueAtTime(450, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.12);
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.12);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.12);
+      } catch(e) {}
+    }
+
+    function playTune() {
+      try {
+        const ctx = getAudio();
+        const notes = [
+          {f: 261.63, d: 0.3}, {f: 261.63, d: 0.2}, {f: 293.66, d: 0.5}, {f: 261.63, d: 0.5}, {f: 349.23, d: 0.5}, {f: 329.63, d: 0.8},
+          {f: 261.63, d: 0.3}, {f: 261.63, d: 0.2}, {f: 293.66, d: 0.5}, {f: 261.63, d: 0.5}, {f: 392.00, d: 0.5}, {f: 349.23, d: 0.8}
+        ];
+        let t = ctx.currentTime + 0.05;
+        notes.forEach(n => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(n.f, t);
+          gain.gain.setValueAtTime(0.2, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + n.d);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(t);
+          osc.stop(t + n.d);
+          t += n.d + 0.05;
+        });
+      } catch(e) {}
+    }
+
+    // Canvas Confetti
+    const canvas = document.getElementById('confettiCanvas');
+    const c = canvas.getContext('2d');
+    let confetti = [];
+    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    window.addEventListener('resize', resize);
+    resize();
+
+    function fireConfetti(x, y, num = 60) {
+      const colors = ['#f43f5e', '#ec4899', '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b'];
+      for (let i = 0; i < num; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const vel = Math.random() * 8 + 3;
+        confetti.push({
+          x: x, y: y,
+          vx: Math.cos(angle) * vel,
+          vy: Math.sin(angle) * vel - 2,
+          size: Math.random() * 8 + 4,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          alpha: 1,
+          decay: Math.random() * 0.02 + 0.015
+        });
+      }
+    }
+
+    function renderConfetti() {
+      c.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = confetti.length - 1; i >= 0; i--) {
+        const p = confetti[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.15; // gravity
+        p.alpha -= p.decay;
+        if (p.alpha <= 0) {
+          confetti.splice(i, 1);
+        } else {
+          c.save();
+          c.globalAlpha = p.alpha;
+          c.fillStyle = p.color;
+          c.fillRect(p.x, p.y, p.size, p.size);
+          c.restore();
+        }
+      }
+      requestAnimationFrame(renderConfetti);
+    }
+    renderConfetti();
+
+    // Data parsing
+    const defaultData = {
+      name: "Sophia",
+      message: "Happy Birthday! Wishing you a year packed with immense happiness, laughter, health, and unmatched achievements. May every dream in your heart come true! Have an extraordinary day! 🎂✨",
+      sender: "Yours Truly, Alex"
+    };
+
+    function getData() {
+      try {
+        const hash = window.location.hash.substring(1);
+        if (hash.startsWith('msg=')) {
+          const jsonStr = decodeURIComponent(escape(atob(hash.replace('msg=', ''))));
+          return JSON.parse(jsonStr);
+        }
+      } catch(e) {}
+      return defaultData;
+    }
+
+    const current = getData();
+
+    // DOM Interaction
+    const gamePhase = document.getElementById('gamePhase');
+    const cardPhase = document.getElementById('cardPhase');
+    const targetHeart = document.getElementById('targetHeart');
+    const shootBtn = document.getElementById('shootBtn');
+    const cardRecipient = document.getElementById('cardRecipient');
+    const cardSender = document.getElementById('cardSender');
+    const typewriterText = document.getElementById('typewriterText');
+    const cakeBtn = document.getElementById('cakeBtn');
+    const flameIcon = document.getElementById('flameIcon');
+    const wishHint = document.getElementById('wishHint');
+    const toast = document.getElementById('toast');
+
+    function notify(text) {
+      toast.innerText = text;
+      toast.style.opacity = '1';
+      setTimeout(() => { toast.style.opacity = '0'; }, 2500);
+    }
+
+    function typeWriter(txt, el, i = 0) {
+      if (i < txt.length) {
+        el.innerHTML += txt.charAt(i);
+        setTimeout(() => typeWriter(txt, el, i + 1), 25);
+      }
+    }
+
+    function unlockSurprise() {
+      soundPop();
+      const rect = targetHeart.getBoundingClientRect();
+      fireConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2, 80);
+
+      setTimeout(() => {
+        gamePhase.style.display = 'none';
+        cardPhase.style.display = 'block';
+
+        cardRecipient.textContent = `Happy Birthday, ${current.name}! 🎉`;
+        cardSender.textContent = current.sender;
+        typeWriter(current.message, typewriterText);
+
+        fireConfetti(window.innerWidth / 2, window.innerHeight * 0.4, 70);
+        setTimeout(playTune, 300);
+      }, 400);
+    }
+
+    targetHeart.addEventListener('click', unlockSurprise);
+    shootBtn.addEventListener('click', unlockSurprise);
+
+    let blown = false;
+    cakeBtn.addEventListener('click', () => {
+      if (!blown) {
+        blown = true;
+        flameIcon.textContent = '💨';
+        wishHint.textContent = '✨ Wish granted! May your dreams come true!';
+        wishHint.style.background = '#dcfce7';
+        wishHint.style.color = '#15803d';
+        soundPop();
+        fireConfetti(window.innerWidth / 2, window.innerHeight * 0.35, 60);
+      }
+    });
+
+    document.getElementById('moreConfettiBtn').addEventListener('click', () => {
+      soundPop();
+      fireConfetti(window.innerWidth / 2, window.innerHeight / 2, 80);
+    });
+
+    document.getElementById('playSongBtn').addEventListener('click', playTune);
+
+    // Modal logic
+    const modal = document.getElementById('creatorModal');
+    document.getElementById('openCreatorBtn').addEventListener('click', () => {
+      modal.style.display = 'flex';
+    });
+    document.getElementById('closeModalBtn').addEventListener('click', () => {
+      modal.style.display = 'none';
+    });
+
+    document.getElementById('creatorForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const payload = {
+        name: document.getElementById('inputName').value.trim(),
+        message: document.getElementById('inputMessage').value.trim(),
+        sender: document.getElementById('inputSender').value.trim()
+      };
+      const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+      const currentUrl = window.location.href.split('#')[0];
+      const resultUrl = `${currentUrl}#msg=${encoded}`;
+
+      document.getElementById('generatedLink').value = resultUrl;
+      document.getElementById('linkOutputBox').style.display = 'block';
+      notify("Link generated!");
+    });
+
+    document.getElementById('copyLinkBtn').addEventListener('click', () => {
+      const copyBox = document.getElementById('generatedLink');
+      copyBox.select();
+      navigator.clipboard.writeText(copyBox.value);
+      notify("Copied to clipboard!");
+    });
+  </script>
+</body>
+</html>
